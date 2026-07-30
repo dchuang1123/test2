@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISO 9001 程度評估</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root{
+  --navy:#16233F;
+  --steel:#3D5A80;
+  --paper:#F3F0E7;
+  --paper-dim:#E7E2D3;
+  --brass:#B8912F;
+  --brass-light:#D9B75C;
+  --pass:#3F6B4F;
+  --fail:#A5433C;
+  --ink:#1C1C1C;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(circle at 15% 10%, rgba(184,145,47,0.08), transparent 40%),
+    var(--paper);
+  background-image:
+    linear-gradient(rgba(22,35,63,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22,35,63,0.035) 1px, transparent 1px),
+    radial-gradient(circle at 15% 10%, rgba(184,145,47,0.08), transparent 40%);
+  background-size: 24px 24px, 24px 24px, cover;
+  font-family:'IBM Plex Sans TC', sans-serif;
+  color:var(--ink);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  padding:32px 16px 80px;
+}
+
+.sheet{
+  width:100%;
+  max-width:680px;
+}
+
+.letterhead{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  border-bottom:2px solid var(--navy);
+  padding-bottom:14px;
+  margin-bottom:22px;
+}
+.letterhead .mark{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  letter-spacing:0.12em;
+  color:var(--steel);
+}
+.letterhead h1{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:22px;
+  font-weight:700;
+  color:var(--navy);
+  margin:2px 0 0;
+  letter-spacing:0.01em;
+}
+.letterhead .sub{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  color:var(--brass);
+  text-align:right;
+  line-height:1.6;
+}
+
+/* checklist progress */
+.checklist{
+  display:flex;
+  gap:6px;
+  margin-bottom:26px;
+}
+.checkbox{
+  flex:1;
+  height:10px;
+  border:1.5px solid var(--navy);
+  background:transparent;
+  position:relative;
+  overflow:hidden;
+}
+.checkbox.done{background:var(--navy);}
+.checkbox.correct{background:var(--pass); border-color:var(--pass);}
+.checkbox.wrong{background:var(--fail); border-color:var(--fail);}
+
+.card{
+  background:var(--paper);
+  border:1.5px solid var(--navy);
+  padding:28px 26px;
+  position:relative;
+}
+.card::before{
+  content:"";
+  position:absolute;
+  top:8px; left:8px; right:8px; bottom:8px;
+  border:1px solid rgba(22,35,63,0.18);
+  pointer-events:none;
+}
+
+.clause{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  color:var(--brass);
+  letter-spacing:0.08em;
+  margin-bottom:10px;
+}
+
+.question{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:19px;
+  font-weight:600;
+  color:var(--navy);
+  line-height:1.5;
+  margin:0 0 22px;
+}
+
+.options{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.option{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  text-align:left;
+  padding:13px 14px;
+  border:1.5px solid var(--steel);
+  background:rgba(255,255,255,0.4);
+  font-family:'IBM Plex Sans TC', sans-serif;
+  font-size:14.5px;
+  color:var(--ink);
+  cursor:pointer;
+  transition:background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.option:hover:not(:disabled){
+  background:rgba(61,90,128,0.08);
+  transform:translateX(2px);
+}
+.option:disabled{cursor:default;}
+.option .tag{
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:600;
+  color:var(--steel);
+  flex-shrink:0;
+}
+.option.correct{
+  border-color:var(--pass);
+  background:rgba(63,107,79,0.14);
+}
+.option.correct .tag{color:var(--pass);}
+.option.wrong{
+  border-color:var(--fail);
+  background:rgba(165,67,60,0.12);
+}
+.option.wrong .tag{color:var(--fail);}
+
+.feedback{
+  margin-top:18px;
+  padding:14px 16px;
+  border-left:3px solid var(--brass);
+  background:rgba(184,145,47,0.08);
+  font-size:13.5px;
+  line-height:1.7;
+  display:none;
+}
+.feedback.show{display:block;}
+.feedback .verdict{
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:700;
+  font-size:14px;
+  margin-bottom:4px;
+}
+.feedback.is-correct .verdict{color:var(--pass);}
+.feedback.is-wrong .verdict{color:var(--fail);}
+
+.footer-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:24px;
+}
+.counter{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  color:var(--steel);
+}
+.next-btn{
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:600;
+  font-size:14px;
+  background:var(--navy);
+  color:var(--paper);
+  border:none;
+  padding:11px 24px;
+  cursor:pointer;
+  letter-spacing:0.02em;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.2s ease;
+}
+.next-btn.show{opacity:1; pointer-events:auto;}
+.next-btn:hover{background:var(--steel);}
+
+/* result / stamp screen */
+.result-card{
+  background:var(--paper);
+  border:1.5px solid var(--navy);
+  padding:40px 28px;
+  text-align:center;
+  position:relative;
+}
+.result-card::before{
+  content:"";
+  position:absolute;
+  top:8px; left:8px; right:8px; bottom:8px;
+  border:1px solid rgba(22,35,63,0.18);
+  pointer-events:none;
+}
+.stamp{
+  width:150px;
+  height:150px;
+  margin:0 auto 22px;
+  border-radius:50%;
+  border:4px solid var(--brass);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  transform:rotate(-8deg) scale(0);
+  animation:stamp-in 0.5s cubic-bezier(.2,1.5,.4,1) 0.15s forwards;
+}
+.stamp::before{
+  content:"";
+  position:absolute;
+  inset:8px;
+  border-radius:50%;
+  border:1.5px dashed var(--brass);
+}
+@keyframes stamp-in{
+  to{transform:rotate(-8deg) scale(1);}
+}
+.stamp .grade{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:34px;
+  font-weight:700;
+  color:var(--brass);
+  line-height:1;
+}
+.stamp .grade-label{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:9px;
+  letter-spacing:0.1em;
+  color:var(--brass);
+  margin-top:6px;
+}
+.result-title{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:22px;
+  font-weight:700;
+  color:var(--navy);
+  margin:0 0 8px;
+}
+.result-sub{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:13px;
+  color:var(--steel);
+  margin-bottom:24px;
+}
+.score-breakdown{
+  display:flex;
+  justify-content:center;
+  gap:26px;
+  margin-bottom:28px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  color:var(--ink);
+}
+.score-breakdown .num{
+  display:block;
+  font-family:'Space Grotesk', sans-serif;
+  font-size:22px;
+  font-weight:700;
+  color:var(--navy);
+}
+.restart-btn{
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:600;
+  font-size:14px;
+  background:transparent;
+  color:var(--navy);
+  border:1.5px solid var(--navy);
+  padding:11px 24px;
+  cursor:pointer;
+}
+.restart-btn:hover{background:var(--navy); color:var(--paper);}
+
+.result-actions{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.contact-btn{
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:600;
+  font-size:14px;
+  background:var(--brass);
+  color:var(--navy);
+  border:1.5px solid var(--brass);
+  padding:11px 24px;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+}
+.contact-btn:hover{background:var(--brass-light); border-color:var(--brass-light);}
+
+@media (max-width:480px){
+  .card, .result-card{padding:22px 18px;}
+  .question{font-size:17px;}
+  .letterhead{flex-direction:column; align-items:flex-start; gap:6px;}
+  .letterhead .sub{text-align:left;}
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="letterhead">
+    <div>
+      <div class="mark">QMS · TRAINING RECORD</div>
+      <h1>ISO 9001 程度評估</h1>
+    </div>
+    <div class="sub">表單編號 QF-09.1<br>版次 Rev.03</div>
+  </div>
+
+  <div class="checklist" id="checklist"></div>
+
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none;"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    clause: "標準本質 · 定位（進階）",
+    q: "某公司認為只要出廠檢驗合格，就代表其品質管理系統符合ISO 9001要求，這樣的認知問題出在哪裡？",
+    options: [
+      "出廠檢驗合格已足以證明QMS符合ISO 9001要求",
+      "ISO 9001規範的是QMS透過過程管制達成穩定輸出的能力，而非僅以最終檢驗結果論定",
+      "ISO 9001只關心產品最終檢驗結果",
+      "檢驗合格代表已完全符合條款8與條款9所有要求"
+    ],
+    answer: 1,
+    explain: "ISO 9001強調透過過程方法、預防思維與系統性管理確保穩定輸出，僅以最終檢驗合格判斷，忽略了過程管制、風險因應與持續改進等系統性要求。"
+  },
+  {
+    clause: "條款 4.1 · 組織背景（進階）",
+    q: "某組織每年進行SWOT分析，但結果僅用於年度策略會議簡報，未納入QMS規劃之依據。此做法最可能違反條款4.1的哪一項精神？",
+    options: [
+      "組織無須監視與審查內外部議題相關資訊",
+      "組織所鑑別的內外部議題應作為規劃QMS（如風險與機會因應）之輸入，而非僅供簡報之用",
+      "SWOT分析非條款4.1認可的工具，做法本身即不合規定",
+      "條款4.1僅要求鑑別議題，不要求任何後續應用"
+    ],
+    answer: 1,
+    explain: "條款4.1要求組織監視並審查所鑑別的內外部議題，並將其作為規劃QMS的輸入，而非僅止於報告呈現、未實際運用於系統規劃。"
+  },
+  {
+    clause: "條款 4.2 · 利害關係人（進階）",
+    q: "組織決定不將某供應商列為條款4.2所稱之「利害關係人」，理由是該供應商並非直接影響產品最終品質。此判斷可能的問題為何？",
+    options: [
+      "利害關係人的鑑別基準應在於其對組織達成QMS預期結果之能力是否具有攸關影響，而非僅看是否直接影響產品品質",
+      "供應商一律不屬於利害關係人",
+      "條款4.2並未要求組織鑑別利害關係人的攸關要求",
+      "利害關係人僅限外部機構，供應商屬於合作夥伴而非利害關係人"
+    ],
+    answer: 0,
+    explain: "條款4.2要求組織鑑別與QMS攸關之利害關係人及其要求，判斷基準在於該方是否對組織穩定提供符合要求之產品／服務的能力具有影響，而非僅限於是否直接影響產品品質本身。"
+  },
+  {
+    clause: "條款 7.1.6 · 組織知識（進階）",
+    q: "某資深工程師即將退休，其多年累積的製程調整經驗僅存在個人記憶中，未曾文件化亦未安排傳承。此情形最直接違反了哪一條款的精神？",
+    options: [
+      "條款7.2能力要求",
+      "條款7.1.6組織知識要求，未妥善因應人員異動可能造成的知識流失風險",
+      "條款7.3認知要求",
+      "條款7.4溝通要求"
+    ],
+    answer: 1,
+    explain: "條款7.1.6要求組織決定並維護運作過程所需的知識，並在人員異動（如退休）時考量如何因應變化中的需求與趨勢，避免關鍵知識流失。"
+  },
+  {
+    clause: "條款 7.2 · 能力（進階）",
+    q: "組織為新進人員安排了完整的教育訓練課程，但訓練結束後未進行任何能力確認或考核，直接讓其獨立上線作業。此做法最可能不符合條款7.2的哪一項要求？",
+    options: [
+      "組織應決定所需能力",
+      "組織應提供訓練機會",
+      "組織應確保人員基於適當教育、訓練或經驗具備能力，並於必要時評估所採取措施之有效性",
+      "組織應保存人員之學歷證明"
+    ],
+    answer: 2,
+    explain: "條款7.2不僅要求提供訓練，還要求組織確保人員具備必要能力，並在適當情況下評估所採取措施（如訓練）的有效性，而非僅完成訓練流程即可。"
+  },
+  {
+    clause: "條款 7.3 · 認知（進階）",
+    q: "某員工清楚知道公司的品質政策口號，但被問及「若發現產品不符合規定應如何處理」時卻答不出來。此現象反映組織在條款7.3落實上的缺口為何？",
+    options: [
+      "員工不需要知道品質政策的意涵，只需背誦口號",
+      "認知不僅是知悉品質政策文字，更應包含了解自身對QMS有效性的貢獻，以及不符合QMS要求的後果",
+      "此情形與條款7.3認知無關，應歸類為條款7.2能力問題",
+      "只要品質政策公告上牆，即已滿足認知要求"
+    ],
+    answer: 1,
+    explain: "條款7.3要求人員認知品質政策、攸關品質目標、自身對QMS有效性的貢獻，以及不符合QMS要求的影響，僅背誦口號而不理解意涵並不滿足此條款精神。"
+  },
+  {
+    clause: "條款 7.4 · 溝通（進階）",
+    q: "組織制定了溝通計畫，明訂「品質異常須於24小時內通報品保主管」，卻未規定異常通報後應回覆給哪些單位、以何種方式確認已被知悉。此缺口最可能出現在條款7.4的哪一要素？",
+    options: [
+      "溝通什麼（what）",
+      "溝通時機（when）",
+      "溝通對象與方式（with whom／how）",
+      "溝通由誰負責（who）"
+    ],
+    answer: 2,
+    explain: "條款7.4要求組織決定溝通的內容、時機、對象、方式與負責人；題目情境已明訂內容與時機，缺口在於未涵蓋溝通對象與方式（如何確認已被知悉）。"
+  },
+  {
+    clause: "條款 8.3 · 設計與開發（進階）",
+    q: "某公司在產品設計變更後，僅通知研發部門知悉，未同步評估變更對既有已量產產品之影響，也未通知採購與品保單位調整規格。此作法違反條款8.3中哪一子條款的精神？",
+    options: [
+      "8.3.2 設計與開發規劃",
+      "8.3.3 設計與開發輸入",
+      "8.3.6 設計與開發變更，應對變更進行審查、管制並保存相關文件化資訊",
+      "8.3.4 設計與開發管制"
+    ],
+    answer: 2,
+    explain: "條款8.3.6要求組織對產品／服務實現過程中（含量產後）的設計開發變更進行必要之鑑別、審查與管制，並評估變更對已交付產品之影響，非僅限研發部門內部知悉即可。"
+  },
+  {
+    clause: "條款 9.1.2 · 顧客滿意度（進階）",
+    q: "某公司僅以「客訴件數是否為零」作為衡量顧客滿意度的唯一指標，並於業績說明會上宣稱當年顧客滿意度達100%。此邏輯的主要問題為何？",
+    options: [
+      "客訴件數為零即代表顧客滿意度必然良好，邏輯完全正確",
+      "顧客滿意度衡量應涵蓋顧客對其需求與期望被滿足程度的整體感受，客訴件數低不代表顧客主動滿意，可能只是顧客未表達意見",
+      "條款9.1.2並未要求組織監督顧客滿意度",
+      "顧客滿意度只需管理階層主觀認定即可，無需監督數據佐證"
+    ],
+    answer: 1,
+    explain: "條款9.1.2要求監督顧客對其需求與期望被滿足程度的感受；無客訴不等於顧客主動滿意，可能反映顧客沉默或未反饋，組織應透過調查、訪談等多元方式取得更完整訊息。"
+  },
+  {
+    clause: "驗證管理 · 證書效期（進階）",
+    q: "某組織於驗證證書效期第2年的監督稽核中被開立一項「重大不符合事項」，且逾期未完成矯正，此情形對其證書狀態最可能造成的影響為何？",
+    options: [
+      "不影響證書效期，仍可持續使用至第3年到期",
+      "驗證機構可能暫停（suspend）或撤銷（withdraw）其證書，直到矯正措施確認有效為止",
+      "只需於下次重新驗證時一併說明即可，中間不會有任何處置",
+      "重大不符合事項只會記錄在案，不會影響證書狀態"
+    ],
+    answer: 1,
+    explain: "依一般驗證機構規範，重大不符合事項若逾期未完成有效矯正，驗證機構得暫停或撤銷證書，組織須待矯正措施經確認有效後，才能恢復或重新取得證書。"
+  },
+  {
+    clause: "條款 6.2 · 品質目標（中級）",
+    q: "條款6.2規定，組織在建立品質目標時應符合下列哪一項特性？",
+    options: [
+      "只需由最高管理階層內部決定，不必讓員工知道",
+      "應與品質政策一致、可衡量，並在攸關功能、階層與過程中建立",
+      "品質目標一旦訂定即不可再變更",
+      "僅適用於製造部門，其他部門無須訂定"
+    ],
+    answer: 1,
+    explain: "條款6.2要求品質目標須與品質政策一致、可衡量（如可行）、受監督、溝通並適時更新，並在組織攸關的功能、階層與過程中建立，而非僅高層內部知悉即可。"
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+const results = [];
+
+const checklistEl = document.getElementById('checklist');
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+
+function renderChecklist(){
+  checklistEl.innerHTML = questions.map((_, i) => {
+    let cls = 'checkbox';
+    if (results[i] === true) cls += ' correct';
+    else if (results[i] === false) cls += ' wrong';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+}
+
+function renderQuestion(){
+  answered = false;
+  const item = questions[current];
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="clause">${item.clause}</div>
+      <p class="question">${item.q}</p>
+      <div class="options" id="optionsWrap">
+        ${item.options.map((opt, i) => `
+          <button class="option" data-idx="${i}">
+            <span class="tag">${String.fromCharCode(65+i)}</span>
+            <span>${opt}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div class="feedback" id="feedback">
+        <div class="verdict" id="verdict"></div>
+        <div id="explainText"></div>
+      </div>
+      <div class="footer-row">
+        <div class="counter">題目 ${current+1} / ${questions.length}</div>
+        <button class="next-btn" id="nextBtn">${current === questions.length - 1 ? '查看稽核結果' : '下一題'}</button>
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('.option').forEach(btn => {
+    btn.addEventListener('click', () => selectOption(btn, item));
+  });
+  document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+  renderChecklist();
+}
+
+function selectOption(btn, item){
+  if (answered) return;
+  answered = true;
+  const idx = parseInt(btn.dataset.idx);
+  const isCorrect = idx === item.answer;
+  results[current] = isCorrect;
+  if (isCorrect) score++;
+
+  document.querySelectorAll('.option').forEach(b => {
+    b.disabled = true;
+    const bIdx = parseInt(b.dataset.idx);
+    if (bIdx === item.answer) b.classList.add('correct');
+    else if (bIdx === idx) b.classList.add('wrong');
+  });
+
+  const feedback = document.getElementById('feedback');
+  const verdict = document.getElementById('verdict');
+  const explain = document.getElementById('explainText');
+  feedback.classList.add('show');
+  feedback.classList.add(isCorrect ? 'is-correct' : 'is-wrong');
+  verdict.textContent = isCorrect ? '✓ 符合要求' : '✕ 不符合要求';
+  explain.textContent = item.explain;
+
+  document.getElementById('nextBtn').classList.add('show');
+  renderChecklist();
+}
+
+function nextQuestion(){
+  if (current < questions.length - 1){
+    current++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult(){
+  quizArea.style.display = 'none';
+  resultArea.style.display = 'block';
+
+  const pct = Math.round((score / questions.length) * 100);
+  let grade, gradeLabel, title, sub;
+
+  if (pct >= 90){
+    grade = 'A'; gradeLabel = '優異合格';
+    title = '稽核通過：無不符合事項';
+    sub = 'ISSUED · 品質觀念紮實，已具備稽核員思維';
+  } else if (pct >= 70){
+    grade = 'B'; gradeLabel = '合格通過';
+    title = '稽核通過：輕微觀察事項';
+    sub = 'PASSED · 基本觀念正確，建議複習加深印象';
+  } else {
+    grade = 'C'; gradeLabel = '待改善';
+    title = '未通過：建議重新研讀教材';
+    sub = 'NOT YET · 請重新複習課程重點後再次測驗';
+  }
+
+  resultArea.innerHTML = `
+    <div class="result-card">
+      <div class="stamp">
+        <div class="grade">${grade}</div>
+        <div class="grade-label">${gradeLabel}</div>
+      </div>
+      <h2 class="result-title">${title}</h2>
+      <div class="result-sub">${sub}</div>
+      <div class="score-breakdown">
+        <div><span class="num">${score}</span>答對題數</div>
+        <div><span class="num">${questions.length - score}</span>答錯題數</div>
+        <div><span class="num">${pct}%</span>正確率</div>
+      </div>
+      <div class="result-actions">
+        <button class="restart-btn" id="restartBtn">重新測驗</button>
+        <a class="contact-btn" id="contactBtn" href="https://dchuang1123.github.io/CONSULTANT" target="_blank" rel="noopener">深入了解 · 聯絡黃老師</a>
+      </div>
+    </div>
+  `;
+  document.getElementById('restartBtn').addEventListener('click', restart);
+}
+
+function restart(){
+  current = 0;
+  score = 0;
+  results.length = 0;
+  quizArea.style.display = 'block';
+  resultArea.style.display = 'none';
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
